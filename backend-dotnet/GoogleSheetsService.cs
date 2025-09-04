@@ -779,8 +779,8 @@ public class GoogleSheetsService
     private static readonly Dictionary<string, int> PriorityTimeLimits = new()
     {
         { "Highest", 381 },
-        { "High", 360 },
-        { "Medium", 10 },
+        { "High", 370 },
+        { "Medium", 380 },
         { "Low", 394 },
         { "Lowest", 410 }
     };
