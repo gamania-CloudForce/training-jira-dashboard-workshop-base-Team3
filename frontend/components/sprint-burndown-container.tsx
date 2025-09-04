@@ -71,7 +71,7 @@ export function SprintBurndownContainer({
             <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">無可用資料</h3>
             <p className="text-muted-foreground text-center max-w-md">
-              目前選擇的 Sprint "{selectedSprint}" 沒有可用的燃盡圖資料
+              目前選擇的 Sprint &quot;{selectedSprint}&quot; 沒有可用的燃盡圖資料
             </p>
           </CardContent>
         </Card>

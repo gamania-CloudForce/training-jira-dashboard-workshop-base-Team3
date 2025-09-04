@@ -774,4 +774,93 @@ public class GoogleSheetsService
 
         return null;
     }
+
+    // Priority time limits mapping (days)
+    private static readonly Dictionary<string, int> PriorityTimeLimits = new()
+    {
+        { "Highest", 381 },
+        { "High", 360 },
+        { "Medium", 10 },
+        { "Low", 394 },
+        { "Lowest", 410 }
+    };
+
+    public async Task<OverdueIssuesResponse> GetOverdueIssuesAsync(string? sprint = null, string? project = null)
+    {
+        var data = await FetchAndCacheDataAsync();
+        var now = DateTime.UtcNow;
+        
+        var filteredData = data.AsEnumerable();
+
+        // Apply filters
+        if (!string.IsNullOrEmpty(sprint) && sprint != "All")
+        {
+            filteredData = filteredData.Where(row => 
+                row.ContainsKey("sprint") && row["sprint"]?.ToString()?.Trim() == sprint);
+        }
+
+        if (!string.IsNullOrEmpty(project) && project != "All")
+        {
+            filteredData = filteredData.Where(row => 
+                row.ContainsKey("projects") && row["projects"]?.ToString()?.Contains(project) == true);
+        }
+
+        // Filter for unresolved issues (no resolved date)
+        var unresolvedIssues = filteredData.Where(row => 
+        {
+            var resolvedValue = row.ContainsKey("resolved") ? row["resolved"]?.ToString() : null;
+            return string.IsNullOrEmpty(resolvedValue) || resolvedValue.Trim().Length == 0;
+        });
+
+        var overdueIssues = new List<OverdueIssue>();
+
+        foreach (var issue in unresolvedIssues)
+        {
+            var createdValue = issue.ContainsKey("created") ? issue["created"]?.ToString() : null;
+            var priorityValue = issue.ContainsKey("priority") ? issue["priority"]?.ToString()?.Trim() : null;
+            
+            if (string.IsNullOrEmpty(createdValue)) continue;
+            
+            var createdDate = TryParseDateTime(createdValue);
+            if (createdDate == null) continue;
+
+            // Use default priority if null or empty
+            var priority = string.IsNullOrEmpty(priorityValue) ? "Medium" : priorityValue;
+
+            // Calculate days elapsed
+            var daysElapsed = (int)(now - createdDate.Value).TotalDays;
+            
+            // Get time limit for this priority
+            var timeLimit = PriorityTimeLimits.GetValueOrDefault(priority, 7); // Default to 7 days for unknown priorities
+            
+            // Check if overdue
+            if (daysElapsed > timeLimit)
+            {
+                var overdueIssue = new OverdueIssue(
+                    Key: issue.ContainsKey("key") ? issue["key"]?.ToString() ?? "" : "",
+                    Summary: issue.ContainsKey("summary") ? issue["summary"]?.ToString() ?? "" : "",
+                    Priority: priority,
+                    Status: issue.ContainsKey("status") ? issue["status"]?.ToString() ?? "" : "",
+                    Created: createdDate.Value,
+                    DaysElapsed: daysElapsed,
+                    DaysLimit: timeLimit,
+                    DaysOverdue: daysElapsed - timeLimit,
+                    Project: issue.ContainsKey("projects") ? issue["projects"]?.ToString() ?? "" : "",
+                    Assignee: issue.ContainsKey("assignee") ? issue["assignee"]?.ToString() : null
+                );
+                
+                overdueIssues.Add(overdueIssue);
+            }
+        }
+
+        // Sort by days overdue (most overdue first)
+        overdueIssues = overdueIssues.OrderByDescending(x => x.DaysOverdue).ToList();
+
+        return new OverdueIssuesResponse(
+            OverdueIssues: overdueIssues,
+            TotalCount: overdueIssues.Count,
+            PriorityLimits: PriorityTimeLimits,
+            LastUpdated: now
+        );
+    }
 }

@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  ChevronDown,
   CheckCircle2,
   Clock,
   FileText,
@@ -25,11 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartTooltip } from "@/components/ui/chart";
 import { ChartContainer } from "@/components/ui/chart";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { SprintBurndownContainer } from "@/components/sprint-burndown-container";
+import { OverdueIssuesAlert } from "@/components/overdue-issues-alert";
+import { useOverdueIssues } from "@/hooks/use-overdue-issues";
 
 export default function JiraDashboard() {
   const [selectedSprint, setSelectedSprint] = useState<string>("All");
@@ -44,6 +44,16 @@ export default function JiraDashboard() {
     error,
     refetch,
   } = useDashboard({
+    sprint: selectedSprint === "All" ? undefined : selectedSprint,
+    project: selectedProject === "All" ? undefined : selectedProject,
+  });
+
+  const {
+    data: overdueData,
+    loading: overdueLoading,
+    error: overdueError,
+    refetch: refetchOverdue,
+  } = useOverdueIssues({
     sprint: selectedSprint === "All" ? undefined : selectedSprint,
     project: selectedProject === "All" ? undefined : selectedProject,
   });
@@ -138,13 +148,29 @@ export default function JiraDashboard() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <p className="text-red-600">Error: {error}</p>
-                <Button onClick={refetch} variant="outline" size="sm">
+                <Button 
+                  onClick={() => {
+                    refetch();
+                    refetchOverdue();
+                  }} 
+                  variant="outline" 
+                  size="sm"
+                >
                   Retry
                 </Button>
               </div>
             </CardContent>
           </Card>
         )}
+
+        {/* Overdue Issues Alert - High Priority Section */}
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-1 xl:grid-cols-1">
+          <OverdueIssuesAlert
+            data={overdueData || undefined}
+            loading={overdueLoading}
+            error={overdueError || undefined}
+          />
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           {/* Total Issue Count */}

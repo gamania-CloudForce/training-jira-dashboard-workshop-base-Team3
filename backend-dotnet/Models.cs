@@ -105,3 +105,24 @@ public record SprintInfo(
     [property: JsonPropertyName("complete_date")] DateTime? CompleteDate,
     [property: JsonPropertyName("goal")] string Goal
 );
+
+// Overdue Issues Models
+public record OverdueIssue(
+    [property: JsonPropertyName("key")] string Key,
+    [property: JsonPropertyName("summary")] string Summary,
+    [property: JsonPropertyName("priority")] string Priority,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("created")] DateTime Created,
+    [property: JsonPropertyName("days_elapsed")] int DaysElapsed,
+    [property: JsonPropertyName("days_limit")] int DaysLimit,
+    [property: JsonPropertyName("days_overdue")] int DaysOverdue,
+    [property: JsonPropertyName("project")] string Project,
+    [property: JsonPropertyName("assignee")] string? Assignee
+);
+
+public record OverdueIssuesResponse(
+    [property: JsonPropertyName("overdue_issues")] List<OverdueIssue> OverdueIssues,
+    [property: JsonPropertyName("total_count")] int TotalCount,
+    [property: JsonPropertyName("priority_limits")] Dictionary<string, int> PriorityLimits,
+    [property: JsonPropertyName("last_updated")] DateTime LastUpdated
+);

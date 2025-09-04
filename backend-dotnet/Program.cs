@@ -121,6 +121,22 @@ app.MapGet("/api/dashboard/status-distribution", async (
     }
 });
 
+app.MapGet("/api/dashboard/overdue-issues", async (
+    [FromServices] GoogleSheetsService sheetsService,
+    [FromQuery] string? sprint = null,
+    [FromQuery] string? project = null) =>
+{
+    try
+    {
+        var overdueIssues = await sheetsService.GetOverdueIssuesAsync(sprint, project);
+        return Results.Ok(overdueIssues);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
 // Sprint Burndown API endpoints
 app.MapGet("/api/sprint/burndown/{sprintName}", async (string sprintName, GoogleSheetsService sheetsService) =>
 {
