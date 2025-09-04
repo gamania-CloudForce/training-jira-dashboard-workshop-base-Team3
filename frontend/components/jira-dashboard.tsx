@@ -33,11 +33,20 @@ import { SprintBurndownContainer } from "@/components/sprint-burndown-container"
 
 export default function JiraDashboard() {
   const [selectedSprint, setSelectedSprint] = useState<string>("All");
+  const [selectedProject, setSelectedProject] = useState<string>("All");
 
-  const { stats, statusDistribution, sprintOptions, loading, error, refetch } =
-    useDashboard({
-      sprint: selectedSprint === "All" ? undefined : selectedSprint,
-    });
+  const {
+    stats,
+    statusDistribution,
+    sprintOptions,
+    projectOptions,
+    loading,
+    error,
+    refetch,
+  } = useDashboard({
+    sprint: selectedSprint === "All" ? undefined : selectedSprint,
+    project: selectedProject === "All" ? undefined : selectedProject,
+  });
 
   // 定義 Status 的正確順序
   const statusOrder = [
@@ -85,6 +94,23 @@ export default function JiraDashboard() {
           <h1 className="text-lg font-semibold">Jira Dashboard</h1>
         </div>
         <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              Project:
+            </label>
+            <Select value={selectedProject} onValueChange={setSelectedProject}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select Project" />
+              </SelectTrigger>
+              <SelectContent>
+                {projectOptions.map((project) => (
+                  <SelectItem key={project} value={project}>
+                    {project}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">Sprint:</label>
             <Select value={selectedSprint} onValueChange={setSelectedSprint}>

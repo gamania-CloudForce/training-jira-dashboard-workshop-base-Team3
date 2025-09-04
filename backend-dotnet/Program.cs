@@ -75,14 +75,28 @@ app.MapGet("/api/table/sprints", async (GoogleSheetsService sheetsService) =>
     }
 });
 
-// Dashboard MVP API endpoints
-app.MapGet("/api/dashboard/stats", async (
-    [FromServices] GoogleSheetsService sheetsService,
-    [FromQuery] string? sprint = null) =>
+app.MapGet("/api/table/projects", async (GoogleSheetsService sheetsService) => 
 {
     try
     {
-        var stats = await sheetsService.GetDashboardStatsAsync(sprint);
+        var projects = await sheetsService.GetProjectOptionsAsync();
+        return Results.Ok(new { projects });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
+// Dashboard MVP API endpoints
+app.MapGet("/api/dashboard/stats", async (
+    [FromServices] GoogleSheetsService sheetsService,
+    [FromQuery] string? sprint = null,
+    [FromQuery] string? project = null) =>
+{
+    try
+    {
+        var stats = await sheetsService.GetDashboardStatsAsync(sprint, project);
         return Results.Ok(stats);
     }
     catch (Exception ex)
@@ -93,11 +107,12 @@ app.MapGet("/api/dashboard/stats", async (
 
 app.MapGet("/api/dashboard/status-distribution", async (
     [FromServices] GoogleSheetsService sheetsService,
-    [FromQuery] string? sprint = null) =>
+    [FromQuery] string? sprint = null,
+    [FromQuery] string? project = null) =>
 {
     try
     {
-        var distribution = await sheetsService.GetStatusDistributionAsync(sprint);
+        var distribution = await sheetsService.GetStatusDistributionAsync(sprint, project);
         return Results.Ok(distribution);
     }
     catch (Exception ex)

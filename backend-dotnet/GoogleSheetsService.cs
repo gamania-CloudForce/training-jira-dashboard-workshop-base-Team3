@@ -19,6 +19,8 @@ public class GoogleSheetsService
     private DateTime _cacheTimestamp;
     private List<string>? _sprintCache;
     private DateTime _sprintCacheTimestamp;
+    private List<string>? _projectCache;
+    private DateTime _projectCacheTimestamp;
 
     public GoogleSheetsService(HttpClient httpClient, IConfiguration configuration)
     {
@@ -168,10 +170,61 @@ public class GoogleSheetsService
         return await FetchAndCacheSprintDataAsync();
     }
 
-    public async Task<DashboardStats> GetDashboardStatsAsync(string? sprintFilter = null)
+    public async Task<List<string>> GetProjectOptionsAsync()
+    {
+        return await FetchAndCacheProjectDataAsync();
+    }
+
+    private async Task<List<string>> FetchAndCacheProjectDataAsync()
+    {
+        if (_projectCache != null && DateTime.UtcNow - _projectCacheTimestamp < _cacheDuration)
+        {
+            return _projectCache;
+        }
+
+        var data = await FetchAndCacheDataAsync();
+        var projects = new List<string> { "All" }; // 預設第一個選項
+
+        // 從 rawData 中提取 Projects 欄位的唯一值
+        var projectKeys = new[] { "projects", "Projects", "project", "Project" };
+        string? projectColumn = null;
+
+        // 找到 Projects 欄位
+        if (data.Any())
+        {
+            var firstRow = data.First();
+            foreach (var key in projectKeys)
+            {
+                if (firstRow.ContainsKey(key))
+                {
+                    projectColumn = key;
+                    break;
+                }
+            }
+        }
+
+        if (!string.IsNullOrEmpty(projectColumn))
+        {
+            var uniqueProjects = data
+                .Where(row => row.ContainsKey(projectColumn) && row[projectColumn] != null)
+                .Select(row => row[projectColumn]?.ToString()?.Trim())
+                .Where(project => !string.IsNullOrEmpty(project) && project != "N/A")
+                .Distinct()
+                .OrderBy(p => p)
+                .ToList();
+
+            projects.AddRange(uniqueProjects);
+        }
+
+        _projectCache = projects;
+        _projectCacheTimestamp = DateTime.UtcNow;
+        return _projectCache;
+    }
+
+    public async Task<DashboardStats> GetDashboardStatsAsync(string? sprintFilter = null, string? projectFilter = null)
     {
         var allData = await FetchAndCacheDataAsync();
-        var filteredData = ApplySprintFilter(allData, sprintFilter);
+        var filteredData = ApplyFilters(allData, sprintFilter, projectFilter);
 
         var totalIssues = filteredData.Count;
         
@@ -193,10 +246,10 @@ public class GoogleSheetsService
         );
     }
 
-    public async Task<StatusDistribution> GetStatusDistributionAsync(string? sprintFilter = null)
+    public async Task<StatusDistribution> GetStatusDistributionAsync(string? sprintFilter = null, string? projectFilter = null)
     {
         var allData = await FetchAndCacheDataAsync();
-        var filteredData = ApplySprintFilter(allData, sprintFilter);
+        var filteredData = ApplyFilters(allData, sprintFilter, projectFilter);
 
         var totalCount = filteredData.Count;
         var statusCounts = new Dictionary<string, int>();
@@ -353,6 +406,50 @@ public class GoogleSheetsService
         }).ToList();
     }
 
+    private static List<Dictionary<string, object?>> ApplyProjectFilter(List<Dictionary<string, object?>> data, string? projectFilter)
+    {
+        if (string.IsNullOrEmpty(projectFilter) || projectFilter == "All")
+        {
+            return data;
+        }
+
+        var projectKeys = new[] { "projects", "Projects", "project", "Project" };
+        string? projectColumn = null;
+
+        // 找到 Projects 欄位
+        if (data.Any())
+        {
+            var firstRow = data.First();
+            foreach (var key in projectKeys)
+            {
+                if (firstRow.ContainsKey(key))
+                {
+                    projectColumn = key;
+                    break;
+                }
+            }
+        }
+
+        if (string.IsNullOrEmpty(projectColumn))
+        {
+            return data; // 如果找不到專案欄位，返回所有資料
+        }
+
+        return data.Where(row =>
+        {
+            if (!row.ContainsKey(projectColumn)) return false;
+            var projectValue = row[projectColumn]?.ToString()?.Trim();
+            return projectValue == projectFilter;
+        }).ToList();
+    }
+
+    private static List<Dictionary<string, object?>> ApplyFilters(List<Dictionary<string, object?>> data, string? sprintFilter, string? projectFilter)
+    {
+        var filteredData = ApplySprintFilter(data, sprintFilter);
+        filteredData = ApplyProjectFilter(filteredData, projectFilter);
+        return filteredData;
+    }
+
     public static string? ExtractSheetIdFromUrl(string googleSheetUrl)
     {
         if (string.IsNullOrWhiteSpace(googleSheetUrl))
@@ -428,6 +525,8 @@ public class GoogleSheetsService
         _cacheTimestamp = DateTime.MinValue;
         _sprintCache = null;
         _sprintCacheTimestamp = DateTime.MinValue;
+        _projectCache = null;
+        _projectCacheTimestamp = DateTime.MinValue;
     }
 
     // 新增：獲取 GetJiraSprintValues 表格的完整資料
