@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
+import React, { useState } from "react";
 import {
   ChevronDown,
   CheckCircle2,
@@ -8,73 +8,74 @@ import {
   FileText,
   Target,
   Loader2,
-} from "lucide-react"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+} from "lucide-react";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { ChartContainer } from "@/components/ui/chart"
-import { useDashboard } from "@/hooks/use-dashboard"
-// import { SprintBurndownContainer } from "@/components/sprint-burndown-container"
+} from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
+import { useDashboard } from "@/hooks/use-dashboard";
+import { SprintBurndownContainer } from "@/components/sprint-burndown-container";
 
 export default function JiraDashboard() {
-  const [selectedSprint, setSelectedSprint] = useState<string>('All')
+  const [selectedSprint, setSelectedSprint] = useState<string>("All");
 
-  const {
-    stats,
-    statusDistribution,
-    sprintOptions,
-    loading,
-    error,
-    refetch
-  } = useDashboard({
-    sprint: selectedSprint === 'All' ? undefined : selectedSprint,
-  })
+  const { stats, statusDistribution, sprintOptions, loading, error, refetch } =
+    useDashboard({
+      sprint: selectedSprint === "All" ? undefined : selectedSprint,
+    });
 
   // 定義 Status 的正確順序
   const statusOrder = [
-    'Backlog',
-    'Evaluated', 
-    'To Do',
-    'In Progress',
-    'Waiting',
-    'PR Review',
-    'Dev Completed',
-    'Ready to Test',
-    'Ready to Verify',
-    'Testing',
-    'Ready to Release',
-    'Done',
-    'Invalid',
-    'Routine'
-  ]
+    "Backlog",
+    "Evaluated",
+    "To Do",
+    "In Progress",
+    "Waiting",
+    "PR Review",
+    "Dev Completed",
+    "Ready to Test",
+    "Ready to Verify",
+    "Testing",
+    "Ready to Release",
+    "Done",
+    "Invalid",
+    "Routine",
+  ];
 
   // 將狀態分布資料轉換為圖表格式，並按指定順序排序
-  const chartData = statusDistribution?.distribution
-    .map(item => ({
-      name: item.status,
-      value: item.count,
-      percentage: item.percentage
-    }))
-    .sort((a, b) => {
-      const indexA = statusOrder.indexOf(a.name)
-      const indexB = statusOrder.indexOf(b.name)
-      
-      // 如果狀態不在預定義順序中，放到最後
-      if (indexA === -1 && indexB === -1) return 0
-      if (indexA === -1) return 1
-      if (indexB === -1) return -1
-      
-      return indexA - indexB
-    }) || []
+  const chartData =
+    statusDistribution?.distribution
+      .map((item) => ({
+        name: item.status,
+        value: item.count,
+        percentage: item.percentage,
+      }))
+      .sort((a, b) => {
+        const indexA = statusOrder.indexOf(a.name);
+        const indexB = statusOrder.indexOf(b.name);
+
+        // 如果狀態不在預定義順序中，放到最後
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+
+        return indexA - indexB;
+      }) || [];
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -123,7 +124,9 @@ export default function JiraDashboard() {
           {/* Total Issue Count */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Issue Count</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Issue Count
+              </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -133,16 +136,22 @@ export default function JiraDashboard() {
                   <span className="text-2xl font-bold">--</span>
                 </div>
               ) : (
-                <div className="text-2xl font-bold">{stats?.total_issues || 0}</div>
+                <div className="text-2xl font-bold">
+                  {stats?.total_issues || 0}
+                </div>
               )}
-              <p className="text-xs text-muted-foreground">Total issues tracked</p>
+              <p className="text-xs text-muted-foreground">
+                Total issues tracked
+              </p>
             </CardContent>
           </Card>
 
           {/* Total Story Points */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Story Points</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Story Points
+              </CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -152,16 +161,22 @@ export default function JiraDashboard() {
                   <span className="text-2xl font-bold">--</span>
                 </div>
               ) : (
-                <div className="text-2xl font-bold">{stats?.total_story_points?.toFixed(1) || '0.0'}</div>
+                <div className="text-2xl font-bold">
+                  {stats?.total_story_points?.toFixed(1) || "0.0"}
+                </div>
               )}
-              <p className="text-xs text-muted-foreground">Total story points</p>
+              <p className="text-xs text-muted-foreground">
+                Total story points
+              </p>
             </CardContent>
           </Card>
 
           {/* Total Done Item Count */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Done Item Count</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Done Item Count
+              </CardTitle>
               <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -171,7 +186,9 @@ export default function JiraDashboard() {
                   <span className="text-2xl font-bold">--</span>
                 </div>
               ) : (
-                <div className="text-2xl font-bold">{stats?.done_issues || 0}</div>
+                <div className="text-2xl font-bold">
+                  {stats?.done_issues || 0}
+                </div>
               )}
               <p className="text-xs text-muted-foreground">Completed issues</p>
             </CardContent>
@@ -180,7 +197,9 @@ export default function JiraDashboard() {
           {/* Total Done Item Story Points */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Done Story Points</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Done Story Points
+              </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -190,9 +209,13 @@ export default function JiraDashboard() {
                   <span className="text-2xl font-bold">--</span>
                 </div>
               ) : (
-                <div className="text-2xl font-bold">{stats?.done_story_points?.toFixed(1) || '0.0'}</div>
+                <div className="text-2xl font-bold">
+                  {stats?.done_story_points?.toFixed(1) || "0.0"}
+                </div>
               )}
-              <p className="text-xs text-muted-foreground">Completed story points</p>
+              <p className="text-xs text-muted-foreground">
+                Completed story points
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -232,12 +255,12 @@ export default function JiraDashboard() {
                 >
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
-                      <XAxis 
-                        dataKey="name" 
-                        stroke="#888888" 
-                        fontSize={12} 
-                        tickLine={false} 
-                        axisLine={false} 
+                      <XAxis
+                        dataKey="name"
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
                       />
                       <YAxis
                         stroke="#888888"
@@ -246,7 +269,7 @@ export default function JiraDashboard() {
                         axisLine={false}
                         tickFormatter={(value) => `${value}`}
                       />
-                      <ChartTooltip 
+                      <ChartTooltip
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
@@ -265,10 +288,10 @@ export default function JiraDashboard() {
                           return null;
                         }}
                       />
-                      <Bar 
-                        dataKey="value" 
-                        fill="hsl(221.2 83.2% 53.3%)" 
-                        radius={[4, 4, 0, 0]} 
+                      <Bar
+                        dataKey="value"
+                        fill="hsl(221.2 83.2% 53.3%)"
+                        radius={[4, 4, 0, 0]}
                       />
                     </BarChart>
                   </ResponsiveContainer>
@@ -278,12 +301,11 @@ export default function JiraDashboard() {
           </Card>
         </div>
 
-        {/* Sprint Burndown Section - 暫時隱藏 */}
-        {/* <div className="grid gap-4 md:gap-8 lg:grid-cols-1 xl:grid-cols-1">
+        {/* Sprint Burndown Section */}
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-1 xl:grid-cols-1">
           <SprintBurndownContainer selectedSprint={selectedSprint} />
-        </div> */}
-
+        </div>
       </main>
     </div>
-  )
+  );
 }
