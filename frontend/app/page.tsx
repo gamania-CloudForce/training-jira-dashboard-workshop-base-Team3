@@ -1,4 +1,4 @@
-import JiraDashboard from "@/components/jira-dashboard"
+import JiraDashboard from "@/components/jira-dashboard";
 
 export default function Home() {
   return (
@@ -11,5 +11,5 @@ export default function Home() {
       </div>
       <JiraDashboard />
     </div>
-  )
+  );
 }
